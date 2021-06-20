@@ -29,6 +29,9 @@ fastTraverse(ast, {
         if (t.isExpressionStatement(node) && t.isCallExpression(node.expression)) {
             return [t.emptyStatement(), t.emptyStatement()];
         }
+    },
+    exit(node: t.Node, parent: t.Node) {
+        
     }
 });
 
