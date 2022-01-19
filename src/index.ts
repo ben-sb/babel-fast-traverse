@@ -6,13 +6,18 @@ import * as t from '@babel/types';
  * @param visitor The visitor object.
  * @param parent The parent AST node (internal use only).
  * @param parentKey The key the child is on the parent (internal use only).
+ * @param visitedNodes The set of already visited nodes (internal use only).
  */
-export default function fastTraverse(node: t.Node, visitor: TraversalVisitor, parent?: t.Node, parentKey?: string | [string, number]): void {
-    if (!node) {
+export default function fastTraverse(node: t.Node, visitor: TraversalVisitor, parent?: t.Node, parentKey?: string | [string, number], visitedNodes?: Set<t.Node>): void {
+    if (!visitedNodes) {
+        visitedNodes = new Set<t.Node>();
+    }
+    if (!node || visitedNodes.has(node)) {
         return;
     }
-    const replacement = visitor.enter(node, parent);
+    visitedNodes.add(node);
 
+    const replacement = visitor.enter(node, parent);
     if (replacement && parent && parentKey != undefined) {
         if (Array.isArray(replacement)) {
             if (replacement.length > 0) {
@@ -29,8 +34,15 @@ export default function fastTraverse(node: t.Node, visitor: TraversalVisitor, pa
             }
             node = replacement;
         }
+        
+        return fastTraverse(node, visitor, parent, parentKey, visitedNodes);
     }
 
+    if (visitor.skip) {
+        visitor.skip = false;
+        return;
+    }
+    
     const keys = t.VISITOR_KEYS[node.type];
     if (!keys) {
         return;
@@ -40,10 +52,10 @@ export default function fastTraverse(node: t.Node, visitor: TraversalVisitor, pa
 
         if (Array.isArray(subNode)) {
             for (let i=0; i<subNode.length; i++) {
-                fastTraverse(subNode[i], visitor, node, [key, i]);
+                fastTraverse(subNode[i], visitor, node, [key, i], visitedNodes);
             }
         } else {
-            fastTraverse(subNode, visitor, node, key);
+            fastTraverse(subNode, visitor, node, key, visitedNodes);
         }
     }
 
@@ -61,4 +73,5 @@ export default function fastTraverse(node: t.Node, visitor: TraversalVisitor, pa
 interface TraversalVisitor {
     enter(node: t.Node, parent?: t.Node): t.Node[] | t.Node | void;
     exit?(node: t.Node, parent?: t.Node): void;
+    skip?: boolean;
 }
