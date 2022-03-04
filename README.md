@@ -63,7 +63,7 @@ An example of this:
 ```typescript
 fastTraverse(ast, {
     enter(node: t.Node) {
-        // skips further traversal of the current node and it's children
+        // skips further traversal of the current node and its children
         this.skip = true;
 
         // stops traversing altogether
