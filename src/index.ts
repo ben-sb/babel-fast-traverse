@@ -42,6 +42,9 @@ export default function fastTraverse(node: t.Node, visitor: TraversalVisitor, pa
         visitor.skip = false;
         return;
     }
+    if (visitor.break) {
+        return;
+    }
     
     const keys = t.VISITOR_KEYS[node.type];
     if (!keys) {
@@ -53,9 +56,16 @@ export default function fastTraverse(node: t.Node, visitor: TraversalVisitor, pa
         if (Array.isArray(subNode)) {
             for (let i=0; i<subNode.length; i++) {
                 fastTraverse(subNode[i], visitor, node, [key, i], visitedNodes);
+                if (visitor.break) {
+                    return;
+                }
             }
         } else {
             fastTraverse(subNode, visitor, node, key, visitedNodes);
+        }
+
+        if (visitor.break) {
+            return;
         }
     }
 
@@ -74,4 +84,5 @@ interface TraversalVisitor {
     enter(node: t.Node, parent?: t.Node): t.Node[] | t.Node | void;
     exit?(node: t.Node, parent?: t.Node): void;
     skip?: boolean;
+    break?: boolean;
 }

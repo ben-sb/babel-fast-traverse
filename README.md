@@ -6,7 +6,7 @@ the @babel/types package but adds replacement functionality similar to
 
 ## Example
 
-```javascript
+```typescript
 import * as t from '@babel/types';
 import { parse } from '@babel/parser';
 import generate from '@babel/generator';
@@ -19,7 +19,6 @@ const ast = parse(`
 
 fastTraverse(ast, {
     enter(node: t.Node, parent: t.Node) {
-
         // example of replacing with a single node
         if (t.isStringLiteral(node) && node.value == 'Hello World') {
             return t.stringLiteral('Oh hello there');
@@ -44,4 +43,34 @@ Output
 const message = "Oh hello there";
 ;
 ;
+```
+
+## Visitor
+The visitor interface:
+
+```typescript
+interface TraversalVisitor {
+    enter(node: t.Node, parent?: t.Node): t.Node[] | t.Node | void;
+    exit?(node: t.Node, parent?: t.Node): void;
+    skip?: boolean;
+    break?: boolean;
+}
+```
+
+The skip and break properties can be set to prevent further traversal of the current node (skip) or to stop traversing altogether (break).
+An example of this:
+
+```typescript
+fastTraverse(ast, {
+    enter(node: t.Node) {
+        // skips further traversal of the current node and it's children
+        this.skip = true;
+
+        // stops traversing altogether
+        this.break = true;
+    },
+    exit(node: t.Node, parent: t.Node) {
+        
+    }
+});
 ```
