@@ -39,7 +39,7 @@ console.log(output);
 ```
 
 Output
-```
+```javascript
 const message = "Oh hello there";
 ;
 ;
